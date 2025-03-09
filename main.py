@@ -12,7 +12,6 @@ import utils
 import foodgetter
 import ast
 
-WEBHOOK_BASE_URL = 'https://ota-lounas-tg-webhook.jusola.xyz'
 
 log_chat_id = '@ota_lounas_dev'
 
@@ -31,12 +30,19 @@ def get_channel_chat_id() -> str:
     return chat_id
 
 def get_token() -> str:
-    """Get bot token from file"""
-    tf = open('token', 'r')
-    token = tf.read().strip()
-    tf.close()
-    return token
-
+    try:
+        # Read bot token from the "token" file
+        with open('token', 'r') as file:
+            token = file.read().strip()
+            return token
+    except FileNotFoundError:
+        # Create a token file and ask the user for the token
+        print("Token file not found, please enter your bots token:")
+        token = input("Enter your token: ")
+        with open('token', 'w') as file:
+            file.write(token)
+        return token
+    
 def get_admins() -> list:
     """Get admins from file"""
     af = open('admins', 'r')
@@ -213,14 +219,15 @@ def start_load_foods(*argv) -> None:
 
 def main() -> None:
     """Start bot"""
+    print("Startbot")
     defaults = Defaults(parse_mode=ParseMode.MARKDOWN_V2, tzinfo=get_localzone())
+    print(f"Timezone: {get_localzone()}")
     # Create persistence for buttons to work after bot restart
     persistence = PicklePersistence(
         'bot.pickle', store_callback_data=True, store_user_data=True, store_bot_data=True)
     # Create updater
     token = get_token()
     updater = Updater(token, persistence=persistence, arbitrary_callback_data=True, defaults=defaults)
-    print("test")
     dispatcher = updater.dispatcher
 
     # Load foods
